@@ -389,5 +389,59 @@ CREATE TRIGGER `after_review_insert` AFTER INSERT ON `review` FOR EACH ROW BEGIN
     )
     WHERE member_id = NEW.reviewee_id;
 END$$
+
+  CREATE TRIGGER before_loan_record_insert_set_expected_return
+BEFORE INSERT ON loan_record
+FOR EACH ROW
+BEGIN
+    DECLARE v_duration INT DEFAULT NULL;
+
+    IF NEW.req_id IS NOT NULL THEN
+
+        SELECT duration_days
+        INTO v_duration
+        FROM borrow_request
+        WHERE req_id = NEW.req_id
+        LIMIT 1;
+
+        IF v_duration IS NOT NULL THEN
+            SET NEW.expected_return =
+                DATE_ADD(NEW.loan_date, INTERVAL v_duration DAY);
+        END IF;
+
+    END IF;
+END$$
+
+
+
+CREATE TRIGGER before_loan_record_update_overdue
+BEFORE UPDATE ON loan_record
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'Active'
+       AND NEW.expected_return IS NOT NULL
+       AND NEW.expected_return < CURDATE() THEN
+
+        SET NEW.status = 'Overdue';
+
+    END IF;
+END$$
+
+
+
+
+CREATE TRIGGER before_review_insert_validate_rating
+BEFORE INSERT ON review
+FOR EACH ROW
+BEGIN
+    IF NEW.rating IS NULL
+       OR NEW.rating < 1
+       OR NEW.rating > 5 THEN
+
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Rating must be between 1 and 5';
+
+    END IF;
+END$$
  
 DELIMITER ;

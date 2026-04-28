@@ -321,7 +321,10 @@ INSERT INTO `tool_condition_log` (`cond_id`, `tool_id`, `previous_condition`, `n
 (8, 19, 'Good', 'Fair', '2026-01-10 09:00:00', 'Outer jacket of extension cord cracking from age. Electrically safe.');
 
 
-
+UPDATE loan_record
+SET status = 'Overdue'
+WHERE status = 'Active'
+AND expected_return < CURDATE();
 
 
 

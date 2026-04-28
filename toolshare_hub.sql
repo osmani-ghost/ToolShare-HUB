@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS `toolshare_hub`;
-USE `toolshare_hub`;
+CREATE DATABASE IF NOT EXISTS `dummy`;
+USE `dummy`;
 
 
 CREATE TABLE `area` (
@@ -32,7 +32,6 @@ CREATE TABLE `member` (
   `created_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`member_id`),
   UNIQUE KEY `email` (`email`),
-  KEY `area_id` (`area_id`),
   CONSTRAINT `member_ibfk_1` FOREIGN KEY (`area_id`) REFERENCES `area` (`area_id`)
 );
 
@@ -47,9 +46,6 @@ CREATE TABLE `tool` (
   `description` text DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`tool_id`),
-  KEY `category_id` (`category_id`),
-  KEY `idx_tool_owner` (`owner_id`),
-  KEY `idx_tool_status` (`status`),
   CONSTRAINT `tool_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `member` (`member_id`),
   CONSTRAINT `tool_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `category` (`category_id`)
 );
@@ -66,8 +62,6 @@ CREATE TABLE `borrow_request` (
   `decision_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`req_id`),
-  KEY `idx_borrow_tool` (`tool_id`),
-  KEY `idx_borrow_requester` (`requester_id`),
   CONSTRAINT `borrow_request_ibfk_1` FOREIGN KEY (`tool_id`) REFERENCES `tool` (`tool_id`),
   CONSTRAINT `borrow_request_ibfk_2` FOREIGN KEY (`requester_id`) REFERENCES `member` (`member_id`)
 );
@@ -81,10 +75,6 @@ CREATE TABLE `loan_record` (
   `expected_return` date NOT NULL,
   `status` enum('Active','Returned','Overdue','Lost') DEFAULT 'Active',
   PRIMARY KEY (`loan_id`),
-  KEY `req_id` (`req_id`),
-  KEY `idx_loan_borrower` (`borrower_id`),
-  KEY `idx_loan_tool` (`tool_id`),
-  KEY `idx_loan_status` (`status`),
   CONSTRAINT `loan_record_ibfk_1` FOREIGN KEY (`tool_id`) REFERENCES `tool` (`tool_id`),
   CONSTRAINT `loan_record_ibfk_2` FOREIGN KEY (`borrower_id`) REFERENCES `member` (`member_id`),
   CONSTRAINT `loan_record_ibfk_3` FOREIGN KEY (`req_id`) REFERENCES `borrow_request` (`req_id`)
@@ -109,8 +99,6 @@ CREATE TABLE `damage_report` (
   `severity` enum('Minor','Moderate','Severe') NOT NULL,
   `reported_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`damage_id`),
-  KEY `reported_by` (`reported_by`),
-  KEY `idx_damage_loan` (`loan_id`),
   CONSTRAINT `damage_report_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loan_record` (`loan_id`),
   CONSTRAINT `damage_report_ibfk_2` FOREIGN KEY (`reported_by`) REFERENCES `member` (`member_id`)
 );
@@ -125,8 +113,6 @@ CREATE TABLE `review` (
   `created_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`review_id`),
   UNIQUE KEY `uq_review_per_user_loan` (`loan_id`,`reviewer_id`),
-  KEY `reviewer_id` (`reviewer_id`),
-  KEY `idx_review_reviewee` (`reviewee_id`),
   CONSTRAINT `review_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loan_record` (`loan_id`),
   CONSTRAINT `review_ibfk_2` FOREIGN KEY (`reviewer_id`) REFERENCES `member` (`member_id`),
   CONSTRAINT `review_ibfk_3` FOREIGN KEY (`reviewee_id`) REFERENCES `member` (`member_id`)
@@ -140,7 +126,6 @@ CREATE TABLE `tool_condition_log` (
   `changed_at` datetime DEFAULT current_timestamp(),
   `reason` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`cond_id`),
-  KEY `idx_condlog_tool` (`tool_id`),
   CONSTRAINT `tool_condition_log_ibfk_1` FOREIGN KEY (`tool_id`) REFERENCES `tool` (`tool_id`)
 );
 
